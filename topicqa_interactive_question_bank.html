@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TopicQA Studio - Interactive Question Bank</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- Top Header -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                        <i class="fa-solid fa-graduation-cap text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h1 class="text-lg font-bold text-slate-900 tracking-tight">TopicQA Studio</h1>
+                            <span class="px-2 py-0.5 text-xs font-semibold bg-brand-50 text-brand-700 rounded-md border border-brand-200">GitHub Ready</span>
+                        </div>
+                        <p class="text-xs text-slate-500 hidden sm:block">Interactive Question & Answer Platform</p>
+                    </div>
+                </div>
+
+                <!-- Main View Navigation Tabs -->
+                <nav class="hidden md:flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+                    <button id="tab-study" onclick="switchView('study')" class="flex items-center space-x-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all text-brand-700 bg-white shadow-sm">
+                        <i class="fa-solid fa-book-open text-xs"></i>
+                        <span>Study & Practice</span>
+                    </button>
+                    <button id="tab-quiz" onclick="switchView('quiz')" class="flex items-center space-x-2 px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-lg transition-all">
+                        <i class="fa-solid fa-vial-circle-check text-xs"></i>
+                        <span>Quiz Mode</span>
+                    </button>
+                    <button id="tab-manage" onclick="switchView('manage')" class="flex items-center space-x-2 px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-lg transition-all">
+                        <i class="fa-solid fa-layer-group text-xs"></i>
+                        <span>Manage Q&A</span>
+                    </button>
+                </nav>
+
+                <!-- Action Tools -->
+                <div class="flex items-center space-x-2">
+                    <button onclick="openModal('modal-add-question')" class="inline-flex items-center space-x-1.5 px-3.5 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition shadow-sm">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span class="hidden sm:inline">Add Question</span>
+                    </button>
+                    
+                    <!-- GitHub Export Dropdown / Buttons -->
+                    <div class="relative group">
+                        <button class="p-2 text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition border border-slate-200" title="Export / GitHub Tools">
+                            <i class="fa-solid fa-cloud-arrow-down text-base"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 py-1 hidden group-hover:block z-50">
+                            <button onclick="exportGitHubHtml()" class="w-full text-left px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center space-x-2">
+                                <i class="fa-brands fa-github text-slate-900 text-sm"></i>
+                                <span>Download GitHub index.html</span>
+                            </button>
+                            <button onclick="exportJson()" class="w-full text-left px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center space-x-2">
+                                <i class="fa-solid fa-file-code text-brand-600 text-sm"></i>
+                                <span>Backup Questions (JSON)</span>
+                            </button>
+                            <button onclick="triggerImportJson()" class="w-full text-left px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center space-x-2">
+                                <i class="fa-solid fa-file-import text-amber-600 text-sm"></i>
+                                <span>Import JSON Bank</span>
+                            </button>
+                            <input type="file" id="input-json-file" accept=".json" class="hidden" onchange="importJson(event)">
+                            <div class="border-t border-slate-100 my-1"></div>
+                            <button onclick="openModal('modal-github-guide')" class="w-full text-left px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center space-x-2">
+                                <i class="fa-solid fa-circle-info text-blue-600 text-sm"></i>
+                                <span>GitHub Hosting Guide</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile Navigation -->
+            <div class="flex md:hidden border-t border-slate-200 py-2 justify-around">
+                <button onclick="switchView('study')" id="mob-tab-study" class="text-xs font-semibold text-brand-600 py-1">
+                    <i class="fa-solid fa-book-open block text-center mb-0.5"></i> Study
+                </button>
+                <button onclick="switchView('quiz')" id="mob-tab-quiz" class="text-xs font-semibold text-slate-500 py-1">
+                    <i class="fa-solid fa-vial-circle-check block text-center mb-0.5"></i> Quiz
+                </button>
+                <button onclick="switchView('manage')" id="mob-tab-manage" class="text-xs font-semibold text-slate-500 py-1">
+                    <i class="fa-solid fa-layer-group block text-center mb-0.5"></i> Manage
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+            
+            <!-- Sidebar Navigation & Filters -->
+            <aside class="lg:col-span-1 space-y-5">
+                
+                <!-- Quick Search -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <label for="search-input" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Search Questions</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+                        <input type="text" id="search-input" oninput="handleSearch()" placeholder="Keyword, tag, topic..." class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                        <button id="clear-search-btn" onclick="clearSearch()" class="hidden absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Topic Categories List -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Topics</span>
+                        <button onclick="openAddTopicModal()" class="text-xs font-semibold text-brand-600 hover:text-brand-700 hover:underline">+ New Topic</button>
+                    </div>
+                    <div id="topics-list" class="space-y-1 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+                        <!-- Dynamic Topics Rendered Here -->
+                    </div>
+                </div>
+
+                <!-- Question Type Filter -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <span class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Question Type</span>
+                    <div class="space-y-1">
+                        <button onclick="setFilterType('all')" id="type-btn-all" class="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition bg-brand-50 text-brand-700">
+                            <span><i class="fa-solid fa-globe mr-2 text-brand-500"></i>All Types</span>
+                            <span id="count-type-all" class="bg-brand-200 text-brand-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+                        </button>
+                        <button onclick="setFilterType('objective')" id="type-btn-objective" class="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50 flex items-center justify-between transition">
+                            <span><i class="fa-solid fa-list-check mr-2 text-indigo-500"></i>Objective (MCQ)</span>
+                            <span id="count-type-objective" class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+                        </button>
+                        <button onclick="setFilterType('subjective')" id="type-btn-subjective" class="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50 flex items-center justify-between transition">
+                            <span><i class="fa-solid fa-paragraph mr-2 text-emerald-500"></i>Subjective (Open)</span>
+                            <span id="count-type-subjective" class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Difficulty Filter -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <span class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Difficulty Level</span>
+                    <div class="grid grid-cols-4 gap-1">
+                        <button onclick="setFilterDifficulty('all')" id="diff-btn-all" class="py-1.5 text-xs font-semibold rounded-md border text-center transition bg-slate-900 text-white border-slate-900">All</button>
+                        <button onclick="setFilterDifficulty('Easy')" id="diff-btn-Easy" class="py-1.5 text-xs font-semibold rounded-md border text-slate-600 border-slate-200 hover:border-emerald-500 hover:text-emerald-600 transition">Easy</button>
+                        <button onclick="setFilterDifficulty('Medium')" id="diff-btn-Medium" class="py-1.5 text-xs font-semibold rounded-md border text-slate-600 border-slate-200 hover:border-amber-500 hover:text-amber-600 transition">Med</button>
+                        <button onclick="setFilterDifficulty('Hard')" id="diff-btn-Hard" class="py-1.5 text-xs font-semibold rounded-md border text-slate-600 border-slate-200 hover:border-rose-500 hover:text-rose-600 transition">Hard</button>
+                    </div>
+                </div>
+
+                <!-- Summary Mastery Widget -->
+                <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 rounded-xl shadow-md">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Study Mastery</span>
+                        <i class="fa-solid fa-chart-line text-emerald-400"></i>
+                    </div>
+                    <div class="flex items-baseline space-x-2">
+                        <span id="stat-mastery-percentage" class="text-2xl font-extrabold text-white">0%</span>
+                        <span id="stat-mastered-count" class="text-xs text-slate-300">0 of 0 mastered</span>
+                    </div>
+                    <div class="w-full bg-slate-700/60 rounded-full h-2 mt-3 overflow-hidden">
+                        <div id="stat-mastery-bar" class="bg-emerald-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+            </aside>
+
+            <!-- Main Content Display Area -->
+            <div class="lg:col-span-3 space-y-6">
+
+                <!-- Dynamic Active Filters Bar -->
+                <div class="bg-white px-4 py-3 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-2" id="active-filter-badges">
+                        <!-- Active Badges injected dynamically -->
+                    </div>
+                    <div class="text-xs text-slate-500 font-medium">
+                        Showing <span id="showing-count-num" class="font-bold text-slate-800">0</span> questions
+                    </div>
+                </div>
+
+                <!-- VIEW 1: STUDY & PRACTICE MODE -->
+                <section id="view-study" class="space-y-4">
+                    <div id="questions-feed" class="space-y-4">
+                        <!-- Questions Cards rendered here -->
+                    </div>
+                    <!-- Empty State -->
+                    <div id="empty-state" class="hidden bg-white p-12 text-center rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-800 mb-1">No questions found</h3>
+                        <p class="text-sm text-slate-500 max-w-sm mx-auto mb-6">Try relaxing your search terms or filters, or add a new question to this topic.</p>
+                        <button onclick="openModal('modal-add-question')" class="px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm transition">
+                            <i class="fa-solid fa-plus mr-1.5"></i> Add Question
+                        </button>
+                    </div>
+                </section>
+
+                <!-- VIEW 2: INTERACTIVE QUIZ MODE -->
+                <section id="view-quiz" class="hidden space-y-6">
+                    
+                    <!-- Quiz Setup Screen -->
+                    <div id="quiz-setup-card" class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="max-w-xl">
+                            <div class="inline-flex items-center space-x-2 px-3 py-1 bg-brand-50 text-brand-700 text-xs font-bold rounded-full mb-3">
+                                <i class="fa-solid fa-bolt"></i>
+                                <span>Self Assessment</span>
+                            </div>
+                            <h2 class="text-xl font-extrabold text-slate-900 mb-2">Interactive Quiz Generator</h2>
+                            <p class="text-sm text-slate-600 mb-6">Test your knowledge across your question banks. Choose topic focus and question parameters to begin.</p>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Select Topic</label>
+                                    <select id="quiz-topic-select" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
+                                        <option value="all">All Available Topics</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Question Type Focus</label>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <label class="flex items-center justify-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 font-medium text-xs text-slate-700 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50/50 has-[:checked]:text-brand-700">
+                                            <input type="radio" name="quiz-type" value="all" checked class="hidden">
+                                            <span>All Types</span>
+                                        </label>
+                                        <label class="flex items-center justify-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 font-medium text-xs text-slate-700 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50/50 has-[:checked]:text-brand-700">
+                                            <input type="radio" name="quiz-type" value="objective" class="hidden">
+                                            <span>Objective Only</span>
+                                        </label>
+                                        <label class="flex items-center justify-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 font-medium text-xs text-slate-700 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50/50 has-[:checked]:text-brand-700">
+                                            <input type="radio" name="quiz-type" value="subjective" class="hidden">
+                                            <span>Subjective Only</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Number of Questions</label>
+                                    <select id="quiz-limit-select" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
+                                        <option value="5">5 Questions</option>
+                                        <option value="10" selected>10 Questions</option>
+                                        <option value="15">15 Questions</option>
+                                        <option value="999">All Questions in Selection</option>
+                                    </select>
+                                </div>
+
+                                <button onclick="startQuiz()" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center space-x-2 mt-4">
+                                    <i class="fa-solid fa-play"></i>
+                                    <span>Start Quiz Now</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Quiz Session Screen -->
+                    <div id="quiz-active-card" class="hidden space-y-4">
+                        <!-- Quiz Progress Bar Header -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Progress</span>
+                                <span id="quiz-progress-text" class="text-sm font-extrabold text-slate-800">1 of 10</span>
+                            </div>
+                            <div class="flex-1 max-w-xs mx-4 bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                <div id="quiz-progress-bar" class="bg-brand-600 h-2.5 rounded-full transition-all duration-300" style="width: 10%"></div>
+                            </div>
+                            <button onclick="quitQuiz()" class="text-xs font-bold text-rose-600 hover:text-rose-700">Quit Session</button>
+                        </div>
+
+                        <!-- Quiz Question Container -->
+                        <div id="quiz-question-container" class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Quiz Summary Results Screen -->
+                    <div id="quiz-summary-card" class="hidden bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm text-center">
+                        <div class="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mx-auto mb-4">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <h2 class="text-2xl font-black text-slate-900 mb-1">Quiz Completed!</h2>
+                        <p class="text-sm text-slate-500 mb-6">Here is your self-assessment scorecard</p>
+
+                        <div class="grid grid-cols-3 gap-4 max-w-md mx-auto mb-8 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <div>
+                                <div id="quiz-score-num" class="text-2xl font-black text-slate-800">8/10</div>
+                                <div class="text-[11px] font-bold text-slate-400 uppercase">Total Score</div>
+                            </div>
+                            <div>
+                                <div id="quiz-score-percent" class="text-2xl font-black text-emerald-600">80%</div>
+                                <div class="text-[11px] font-bold text-slate-400 uppercase">Accuracy</div>
+                            </div>
+                            <div>
+                                <div id="quiz-score-mastered" class="text-2xl font-black text-brand-600">+4</div>
+                                <div class="text-[11px] font-bold text-slate-400 uppercase">Mastered</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-center space-x-3">
+                            <button onclick="resetQuizSetup()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
+                                Retake Quiz
+                            </button>
+                            <button onclick="switchView('study')" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl transition">
+                                Back to Study Feed
+                            </button>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- VIEW 3: MANAGE QUESTIONS MODE -->
+                <section id="view-manage" class="hidden space-y-4">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between flex-wrap gap-3">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-900">Question Management Table</h2>
+                            <p class="text-xs text-slate-500">Edit, remove, or organize your repository entries</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="openModal('modal-add-question')" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg transition shadow-sm">
+                                <i class="fa-solid fa-plus mr-1"></i> Add Question
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead class="bg-slate-50 border-b border-slate-200 uppercase font-bold text-slate-400 text-[10px] tracking-wider">
+                                    <tr>
+                                        <th class="px-4 py-3">Topic</th>
+                                        <th class="px-4 py-3">Type</th>
+                                        <th class="px-4 py-3">Question Prompt</th>
+                                        <th class="px-4 py-3">Difficulty</th>
+                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="manage-table-body" class="divide-y divide-slate-100">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL: ADD / EDIT QUESTION -->
+    <div id="modal-add-question" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <h3 id="modal-question-title" class="text-base font-bold text-slate-900">Create New Question</h3>
+                <button onclick="closeModal('modal-add-question')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Form Body -->
+            <form id="form-question" onsubmit="saveQuestion(event)" class="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+                <input type="hidden" id="edit-question-id" value="">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Topic -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Topic *</label>
+                        <select id="form-topic" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Type -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Question Type *</label>
+                        <select id="form-type" onchange="toggleFormTypeFields()" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
+                            <option value="objective">Objective (Multiple Choice)</option>
+                            <option value="subjective">Subjective (Open-Ended / Key Concepts)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Difficulty -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Difficulty Level</label>
+                        <select id="form-difficulty" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
+                            <option value="Easy">Easy</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                    </div>
+
+                    <!-- Tags -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Tags (Comma Separated)</label>
+                        <input type="text" id="form-tags" placeholder="e.g. algorithms, basics, final-exam" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
+                    </div>
+                </div>
+
+                <!-- Question Text -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Question Prompt *</label>
+                    <textarea id="form-prompt" required rows="3" placeholder="Enter your question clearly..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-brand-500 focus:bg-white transition"></textarea>
+                </div>
+
+                <!-- OBJECTIVE FIELDS -->
+                <div id="fields-objective" class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <span class="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">Multiple Choice Options (Mark Correct Answer)</span>
+                    
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <input type="radio" name="correct-option" value="0" checked class="w-4 h-4 text-brand-600">
+                            <span class="text-xs font-bold text-slate-500 w-4">A.</span>
+                            <input type="text" id="option-0" placeholder="Option A text..." class="flex-1 p-2 bg-white border border-slate-200 rounded-md text-xs">
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="radio" name="correct-option" value="1" class="w-4 h-4 text-brand-600">
+                            <span class="text-xs font-bold text-slate-500 w-4">B.</span>
+                            <input type="text" id="option-1" placeholder="Option B text..." class="flex-1 p-2 bg-white border border-slate-200 rounded-md text-xs">
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="radio" name="correct-option" value="2" class="w-4 h-4 text-brand-600">
+                            <span class="text-xs font-bold text-slate-500 w-4">C.</span>
+                            <input type="text" id="option-2" placeholder="Option C text (optional)..." class="flex-1 p-2 bg-white border border-slate-200 rounded-md text-xs">
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="radio" name="correct-option" value="3" class="w-4 h-4 text-brand-600">
+                            <span class="text-xs font-bold text-slate-500 w-4">D.</span>
+                            <input type="text" id="option-3" placeholder="Option D text (optional)..." class="flex-1 p-2 bg-white border border-slate-200 rounded-md text-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUBJECTIVE FIELDS -->
+                <div id="fields-subjective" class="hidden space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Model Answer / Key Concepts *</label>
+                        <textarea id="form-model-answer" rows="4" placeholder="Provide a detailed model answer or breakdown of main points..." class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-brand-500 transition"></textarea>
+                    </div>
+                </div>
+
+                <!-- Explanation / Notes -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Explanation / Solution Rationale</label>
+                    <textarea id="form-explanation" rows="2" placeholder="Why is this answer correct? Helpful hints or background references..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-brand-500 focus:bg-white transition"></textarea>
+                </div>
+
+                <!-- Modal Actions Footer -->
+                <div class="pt-2 flex items-center justify-end space-x-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modal-add-question')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancel</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm transition">Save Question</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD NEW TOPIC -->
+    <div id="modal-add-topic" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-slate-200 p-6">
+            <h3 class="text-base font-bold text-slate-900 mb-1">Create New Topic Category</h3>
+            <p class="text-xs text-slate-500 mb-4">Add a new subject category to organize your question bank.</p>
+            
+            <form onsubmit="handleCreateTopic(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Topic Name</label>
+                    <input type="text" id="new-topic-name" required placeholder="e.g. Organic Chemistry, Macroeconomics" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('modal-add-topic')" class="px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm">Add Topic</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: GITHUB PUBLISHING GUIDE -->
+    <div id="modal-github-guide" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-brands fa-github text-xl text-brand-400"></i>
+                    <h3 class="text-base font-bold">How to Publish on GitHub Pages</h3>
+                </div>
+                <button onclick="closeModal('modal-github-guide')" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-5 overflow-y-auto custom-scrollbar text-xs text-slate-600 leading-relaxed">
+                <p class="text-sm font-medium text-slate-800">You can host this entire question bank on GitHub Pages completely free in less than 2 minutes! Follow these quick steps:</p>
+                
+                <div class="space-y-4">
+                    <div class="flex space-x-3 items-start bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <span class="w-6 h-6 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center flex-shrink-0 text-xs">1</span>
+                        <div>
+                            <strong class="text-slate-900 block text-xs mb-0.5">Download your standalone app file</strong>
+                            Click the <span class="font-bold text-brand-700">"Download GitHub index.html"</span> button from the top header menu. This creates a standalone copy with your custom questions embedded!
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-3 items-start bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <span class="w-6 h-6 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center flex-shrink-0 text-xs">2</span>
+                        <div>
+                            <strong class="text-slate-900 block text-xs mb-0.5">Create a free GitHub Repository</strong>
+                            Go to <a href="https://github.com/new" target="_blank" class="text-brand-600 underline font-semibold">github.com/new</a>. Name your repository (e.g. <code class="bg-slate-200 text-slate-800 px-1 py-0.5 rounded">my-questions</code>), set it to <strong>Public</strong>, and click <strong>Create repository</strong>.
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-3 items-start bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <span class="w-6 h-6 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center flex-shrink-0 text-xs">3</span>
+                        <div>
+                            <strong class="text-slate-900 block text-xs mb-0.5">Upload `index.html`</strong>
+                            On your repository page, click <strong>uploading an existing file</strong>. Drag and drop your downloaded <code class="bg-slate-200 text-slate-800 px-1 py-0.5 rounded">index.html</code> file, then click <strong>Commit changes</strong>.
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-3 items-start bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <span class="w-6 h-6 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center flex-shrink-0 text-xs">4</span>
+                        <div>
+                            <strong class="text-slate-900 block text-xs mb-0.5">Enable GitHub Pages</strong>
+                            In your GitHub repo, navigate to <strong>Settings</strong> &rarr; <strong>Pages</strong> (on the left menu). Under <em>Build and deployment</em>, set Source to <strong>Deploy from a branch</strong> and select <strong>main / root</strong>. Save changes!
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl flex items-center space-x-3">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>
+                    <div>
+                        <strong>Your Live Website URL will be:</strong>
+                        <p class="font-mono text-[11px] mt-0.5 text-emerald-900">https://&lt;your-username&gt;.github.io/&lt;repo-name&gt;/</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+                <button onclick="exportGitHubHtml()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-lg transition shadow-sm">
+                    <i class="fa-solid fa-download mr-1.5"></i> Download index.html Now
+                </button>
+                <button onclick="closeModal('modal-github-guide')" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-bold rounded-lg">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIRMATION DIALOG -->
+    <div id="modal-confirm" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-slate-200 p-6 text-center">
+            <div id="confirm-icon" class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3 text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 id="confirm-title" class="text-base font-bold text-slate-900 mb-1">Are you sure?</h3>
+            <p id="confirm-message" class="text-xs text-slate-500 mb-6">This action cannot be undone.</p>
+            <div class="flex justify-center space-x-3">
+                <button id="confirm-cancel-btn" class="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg">Cancel</button>
+                <button id="confirm-action-btn" class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm">Confirm Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <script>
+        // Default Embedded Question Bank
+        const DEFAULT_QUESTIONS = [
+            {
+                id: 'q-1',
+                topic: 'Computer Science',
+                type: 'objective',
+                prompt: 'What is the average time complexity of searching for an element in a balanced Binary Search Tree (BST)?',
+                options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'],
+                correctIndex: 1,
+                explanation: 'In a balanced BST, each comparison halves the search space, yielding O(log n) time complexity.',
+                difficulty: 'Medium',
+                tags: ['algorithms', 'data-structures'],
+                mastered: false,
+                createdAt: Date.now() - 500000
+            },
+            {
+                id: 'q-2',
+                topic: 'Computer Science',
+                type: 'subjective',
+                prompt: 'Explain the fundamental differences between a Process and a Thread in modern operating systems.',
+                modelAnswer: 'Key Differences:\n1. Memory Space: A process operates in its own isolated memory space. Threads within the same process share the process\'s address space and resources.\n2. Overhead: Context switching between processes carries higher overhead than switching between threads.\n3. Communication: Processes communicate via Inter-Process Communication (IPC), whereas threads communicate directly through shared memory.\n4. Isolation: If one process crashes, it doesn\'t affect others. A thread crash can corrupt the entire parent process.',
+                explanation: 'Focus on memory isolation, context switching overhead, and inter-thread/process communication mechanisms.',
+                difficulty: 'Hard',
+                tags: ['operating-systems', 'concurrency'],
+                mastered: true,
+                createdAt: Date.now() - 400000
+            },
+            {
+                id: 'q-3',
+                topic: 'Mathematics',
+                type: 'objective',
+                prompt: 'What is the derivative of f(x) = sin(x)?',
+                options: ['cos(x)', '-cos(x)', 'tan(x)', 'sec²(x)'],
+                correctIndex: 0,
+                explanation: 'By standard differentiation rules in calculus, d/dx[sin(x)] = cos(x).',
+                difficulty: 'Easy',
+                tags: ['calculus', 'derivatives'],
+                mastered: true,
+                createdAt: Date.now() - 300000
+            },
+            {
+                id: 'q-4',
+                topic: 'Mathematics',
+                type: 'subjective',
+                prompt: 'State the Fundamental Theorem of Calculus and describe its significance.',
+                modelAnswer: 'The Fundamental Theorem of Calculus connects differentiation and integration into inverse operations:\n\n1. First Part: If f is continuous on [a, b], then the function G(x) = ∫[a to x] f(t)dt is continuous and differentiable, with G\'(x) = f(x).\n2. Second Part: ∫[a to b] f(x)dx = F(b) - F(a), where F is any antiderivative of f.\n\nSignificance: It enables calculation of definite integrals using antiderivatives without computing Riemann sums.',
+                explanation: 'Be sure to highlight both parts of the theorem and explain how it unifies rate of change with accumulated area.',
+                difficulty: 'Hard',
+                tags: ['calculus', 'integrals'],
+                mastered: false,
+                createdAt: Date.now() - 200000
+            },
+            {
+                id: 'q-5',
+                topic: 'Physics',
+                type: 'objective',
+                prompt: 'Which SI unit is used to measure luminous intensity?',
+                options: ['Lumen', 'Lux', 'Candela', 'Watt'],
+                correctIndex: 2,
+                explanation: 'The Candela (cd) is the base SI unit of luminous intensity.',
+                difficulty: 'Easy',
+                tags: ['units', 'optics'],
+                mastered: false,
+                createdAt: Date.now() - 100000
+            },
+            {
+                id: 'q-6',
+                topic: 'World History',
+                type: 'subjective',
+                prompt: 'Analyze the key socio-economic impacts of the Industrial Revolution in 19th century Europe.',
+                modelAnswer: '1. Urbanization: Rapid migration from rural areas to industrial cities.\n2. Rise of Working Class: Growth of factory wage labor and urban proletariat.\n3. Technological Productivity: Mass production replacing artisanal craftwork.\n4. Social Reforms: Early labor movements, unionization, and child labor laws.',
+                explanation: 'Address both positive technological advancements and harsh living/labor conditions.',
+                difficulty: 'Medium',
+                tags: ['history', 'europe', 'economics'],
+                mastered: false,
+                createdAt: Date.now() - 50000
+            }
+        ];
+
+        // Custom Topics list
+        const DEFAULT_TOPICS = ['Computer Science', 'Mathematics', 'Physics', 'World History'];
+
+        // Global Application State
+        let questions = [];
+        let customTopics = [];
+        let currentView = 'study'; // 'study' | 'quiz' | 'manage'
+        
+        // Active Filter States
+        let selectedTopic = 'all';
+        let selectedType = 'all'; // 'all' | 'objective' | 'subjective'
+        let selectedDifficulty = 'all'; // 'all' | 'Easy' | 'Medium' | 'Hard'
+        let searchQuery = '';
+
+        // Practice State (holds selected MCQ option per question in study mode)
+        let practiceState = {};
+
+        // Quiz State
+        let quizState = {
+            questions: [],
+            currentIndex: 0,
+            answers: {}, 
+            score: 0,
+            active: false
+        };
+
+        // Initialize Application
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromStorage();
+            renderTopicsList();
+            renderActiveFilterBadges();
+            renderView();
+            updateMasteryStats();
+        });
+
+        // Load or initialize Data
+        function loadFromStorage() {
+            const savedQuestions = localStorage.getItem('topic_qa_questions');
+            if (savedQuestions) {
+                try {
+                    questions = JSON.parse(savedQuestions);
+                } catch (e) {
+                    questions = [...DEFAULT_QUESTIONS];
+                }
+            } else {
+                questions = [...DEFAULT_QUESTIONS];
+            }
+
+            const savedTopics = localStorage.getItem('topic_qa_topics');
+            if (savedTopics) {
+                try {
+                    customTopics = JSON.parse(savedTopics);
+                } catch (e) {
+                    customTopics = [...DEFAULT_TOPICS];
+                }
+            } else {
+                customTopics = [...DEFAULT_TOPICS];
+            }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('topic_qa_questions', JSON.stringify(questions));
+            localStorage.setItem('topic_qa_topics', JSON.stringify(customTopics));
+        }
+
+        // Navigation Switcher
+        function switchView(viewName) {
+            currentView = viewName;
+            
+            // Header Tabs styling
+            ['study', 'quiz', 'manage'].forEach(v => {
+                const desktopBtn = document.getElementById(`tab-${v}`);
+                const mobBtn = document.getElementById(`mob-tab-${v}`);
+                const viewSec = document.getElementById(`view-${v}`);
+
+                if (v === viewName) {
+                    desktopBtn.className = "flex items-center space-x-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all text-brand-700 bg-white shadow-sm";
+                    if (mobBtn) mobBtn.className = "text-xs font-semibold text-brand-600 py-1";
+                    if (viewSec) viewSec.classList.remove('hidden');
+                } else {
+                    desktopBtn.className = "flex items-center space-x-2 px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-lg transition-all";
+                    if (mobBtn) mobBtn.className = "text-xs font-semibold text-slate-500 py-1";
+                    if (viewSec) viewSec.classList.add('hidden');
+                }
+            });
+
+            if (viewName === 'study') {
+                renderStudyFeed();
+            } else if (viewName === 'manage') {
+                renderManageTable();
+            } else if (viewName === 'quiz') {
+                populateQuizTopicDropdown();
+            }
+        }
+
+        // Filtering Helpers
+        function getFilteredQuestions() {
+            return questions.filter(q => {
+                // Topic match
+                if (selectedTopic !== 'all' && q.topic !== selectedTopic) return false;
+                
+                // Type match
+                if (selectedType !== 'all' && q.type !== selectedType) return false;
+                
+                // Difficulty match
+                if (selectedDifficulty !== 'all' && q.difficulty !== selectedDifficulty) return false;
+
+                // Search Query
+                if (searchQuery.trim() !== '') {
+                    const query = searchQuery.toLowerCase();
+                    const inPrompt = q.prompt.toLowerCase().includes(query);
+                    const inTopic = q.topic.toLowerCase().includes(query);
+                    const inTags = q.tags && q.tags.some(t => t.toLowerCase().includes(query));
+                    const inAnswer = (q.modelAnswer && q.modelAnswer.toLowerCase().includes(query)) || 
+                                     (q.explanation && q.explanation.toLowerCase().includes(query));
+                    
+                    if (!inPrompt && !inTopic && !inTags && !inAnswer) return false;
+                }
+
+                return true;
+            });
+        }
+
+        function setFilterTopic(topic) {
+            selectedTopic = topic;
+            renderTopicsList();
+            renderActiveFilterBadges();
+            renderView();
+        }
+
+        function setFilterType(type) {
+            selectedType = type;
+            ['all', 'objective', 'subjective'].forEach(t => {
+                const btn = document.getElementById(`type-btn-${t}`);
+                if (t === type) {
+                    btn.className = "w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition bg-brand-50 text-brand-700";
+                } else {
+                    btn.className = "w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50 flex items-center justify-between transition";
+                }
+            });
+            renderActiveFilterBadges();
+            renderView();
+        }
+
+        function setFilterDifficulty(diff) {
+            selectedDifficulty = diff;
+            ['all', 'Easy', 'Medium', 'Hard'].forEach(d => {
+                const btn = document.getElementById(`diff-btn-${d}`);
+                if (d === diff) {
+                    btn.className = "py-1.5 text-xs font-semibold rounded-md border text-center transition bg-slate-900 text-white border-slate-900";
+                } else {
+                    btn.className = "py-1.5 text-xs font-semibold rounded-md border text-slate-600 border-slate-200 hover:border-slate-400 transition";
+                }
+            });
+            renderActiveFilterBadges();
+            renderView();
+        }
+
+        function handleSearch() {
+            const val = document.getElementById('search-input').value;
+            searchQuery = val;
+            const clearBtn = document.getElementById('clear-search-btn');
+            if (val.trim() !== '') {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+            renderActiveFilterBadges();
+            renderView();
+        }
+
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            searchQuery = '';
+            document.getElementById('clear-search-btn').classList.add('hidden');
+            renderActiveFilterBadges();
+            renderView();
+        }
+
+        // Render Topic Badges and Counters
+        function renderTopicsList() {
+            const container = document.getElementById('topics-list');
+            
+            // Gather counts
+            const topicCounts = {};
+            customTopics.forEach(t => topicCounts[t] = 0);
+            questions.forEach(q => {
+                if (topicCounts[q.topic] !== undefined) {
+                    topicCounts[q.topic]++;
+                } else {
+                    topicCounts[q.topic] = 1;
+                    if (!customTopics.includes(q.topic)) customTopics.push(q.topic);
+                }
+            });
+
+            // Count for All Types
+            const totalCount = questions.length;
+            const objCount = questions.filter(q => q.type === 'objective').length;
+            const subjCount = questions.filter(q => q.type === 'subjective').length;
+
+            document.getElementById('count-type-all').textContent = totalCount;
+            document.getElementById('count-type-objective').textContent = objCount;
+            document.getElementById('count-type-subjective').textContent = subjCount;
+
+            let html = `
+                <button onclick="setFilterTopic('all')" class="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition ${selectedTopic === 'all' ? 'bg-brand-50 text-brand-700 font-bold' : 'text-slate-600 hover:bg-slate-50'}">
+                    <span><i class="fa-solid fa-layer-group mr-2 ${selectedTopic === 'all' ? 'text-brand-600' : 'text-slate-400'}"></i>All Topics</span>
+                    <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-bold">${totalCount}</span>
+                </button>
+            `;
+
+            customTopics.forEach(topic => {
+                const count = topicCounts[topic] || 0;
+                const isSelected = selectedTopic === topic;
+                html += `
+                    <button onclick="setFilterTopic('${topic.replace(/'/g, "\\'")}')" class="w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between transition ${isSelected ? 'bg-brand-50 text-brand-700 font-bold' : 'text-slate-600 hover:bg-slate-50'}">
+                        <span class="truncate pr-2"><i class="fa-solid fa-hashtag mr-2 ${isSelected ? 'text-brand-600' : 'text-slate-400'} text-[10px]"></i>${topic}</span>
+                        <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-bold flex-shrink-0">${count}</span>
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Render Active Filter Badges
+        function renderActiveFilterBadges() {
+            const container = document.getElementById('active-filter-badges');
+            let badges = [];
+
+            if (selectedTopic !== 'all') {
+                badges.push(`
+                    <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-200">
+                        <span>Topic: ${selectedTopic}</span>
+                        <button onclick="setFilterTopic('all')" class="hover:text-brand-900 ml-1"><i class="fa-solid fa-xmark"></i></button>
+                    </span>
+                `);
+            }
+
+            if (selectedType !== 'all') {
+                badges.push(`
+                    <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        <span>Type: ${selectedType === 'objective' ? 'Objective' : 'Subjective'}</span>
+                        <button onclick="setFilterType('all')" class="hover:text-indigo-900 ml-1"><i class="fa-solid fa-xmark"></i></button>
+                    </span>
+                `);
+            }
+
+            if (selectedDifficulty !== 'all') {
+                badges.push(`
+                    <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                        <span>Difficulty: ${selectedDifficulty}</span>
+                        <button onclick="setFilterDifficulty('all')" class="hover:text-amber-900 ml-1"><i class="fa-solid fa-xmark"></i></button>
+                    </span>
+                `);
+            }
+
+            if (searchQuery.trim() !== '') {
+                badges.push(`
+                    <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                        <span>Search: "${searchQuery}"</span>
+                        <button onclick="clearSearch()" class="hover:text-slate-900 ml-1"><i class="fa-solid fa-xmark"></i></button>
+                    </span>
+                `);
+            }
+
+            if (badges.length === 0) {
+                container.innerHTML = `<span class="text-xs font-semibold text-slate-400">All Questions</span>`;
+            } else {
+                container.innerHTML = badges.join('');
+            }
+        }
+
+        function renderView() {
+            if (currentView === 'study') {
+                renderStudyFeed();
+            } else if (currentView === 'manage') {
+                renderManageTable();
+            }
+        }
+
+        // Render Study & Practice Cards Feed
+        function renderStudyFeed() {
+            const filtered = getFilteredQuestions();
+            const feedContainer = document.getElementById('questions-feed');
+            const emptyState = document.getElementById('empty-state');
+            document.getElementById('showing-count-num').textContent = filtered.length;
+
+            if (filtered.length === 0) {
+                feedContainer.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            let html = '';
+            filtered.forEach(q => {
+                const diffBadgeClass = q.difficulty === 'Easy' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                      q.difficulty === 'Hard' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                      'bg-amber-50 text-amber-700 border-amber-200';
+
+                const typeBadgeClass = q.type === 'objective' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-teal-50 text-teal-700 border-teal-200';
+                const typeIcon = q.type === 'objective' ? 'fa-list-check' : 'fa-paragraph';
+
+                html += `
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4 hover:border-slate-300 transition">
+                        
+                        <!-- Top Meta Header -->
+                        <div class="flex items-center justify-between flex-wrap gap-2">
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                    <i class="fa-solid fa-hashtag text-[10px] mr-1 text-slate-400"></i>${q.topic}
+                                </span>
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-bold border ${typeBadgeClass}">
+                                    <i class="fa-solid ${typeIcon} text-[10px] mr-1"></i>${q.type === 'objective' ? 'Objective' : 'Subjective'}
+                                </span>
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${diffBadgeClass}">
+                                    ${q.difficulty || 'Medium'}
+                                </span>
+                            </div>
+
+                            <!-- Mastery Toggle & Edit Tools -->
+                            <div class="flex items-center space-x-2">
+                                <button onclick="toggleMastered('${q.id}')" title="Toggle Mastered" class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition ${q.mastered ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-50 text-slate-400 hover:text-slate-600 border border-slate-200'}">
+                                    <i class="fa-solid ${q.mastered ? 'fa-circle-check text-emerald-600' : 'fa-circle text-slate-300'}"></i>
+                                    <span>${q.mastered ? 'Mastered' : 'Mark Mastered'}</span>
+                                </button>
+
+                                <button onclick="openEditQuestionModal('${q.id}')" class="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-slate-50 rounded-md transition" title="Edit Question">
+                                    <i class="fa-solid fa-pen-to-square text-sm"></i>
+                                </button>
+                                <button onclick="confirmDeleteQuestion('${q.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-slate-50 rounded-md transition" title="Delete Question">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Question Prompt -->
+                        <div class="text-sm sm:text-base font-bold text-slate-900 leading-relaxed whitespace-pre-line">
+                            ${escapeHtml(q.prompt)}
+                        </div>
+
+                        <!-- OBJECTIVE CONTENT -->
+                        ${q.type === 'objective' ? renderObjectiveStudyContent(q) : ''}
+
+                        <!-- SUBJECTIVE CONTENT -->
+                        ${q.type === 'subjective' ? renderSubjectiveStudyContent(q) : ''}
+
+                        <!-- Tags Footer -->
+                        ${q.tags && q.tags.length > 0 ? `
+                            <div class="pt-2 flex flex-wrap items-center gap-1.5 border-t border-slate-100">
+                                <i class="fa-solid fa-tags text-slate-300 text-xs mr-1"></i>
+                                ${q.tags.map(t => `<span class="text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">${escapeHtml(t)}</span>`).join('')}
+                            </div>
+                        ` : ''}
+
+                    </div>
+                `;
+            });
+
+            feedContainer.innerHTML = html;
+        }
+
+        // Render MCQ Interactive Options for Study Mode
+        function renderObjectiveStudyContent(q) {
+            const selectedOpt = practiceState[q.id];
+            let optionsHtml = '';
+
+            if (q.options && q.options.length > 0) {
+                optionsHtml = q.options.map((opt, idx) => {
+                    const optionLetter = String.fromCharCode(65 + idx);
+                    let stateClasses = 'border-slate-200 hover:border-brand-300 bg-slate-50/50 text-slate-800';
+                    let iconHtml = `<span class="w-6 h-6 rounded-md bg-white border border-slate-200 flex items-center justify-center font-bold text-xs text-slate-500 mr-3">${optionLetter}</span>`;
+
+                    if (selectedOpt !== undefined) {
+                        if (idx === q.correctIndex) {
+                            stateClasses = 'border-emerald-300 bg-emerald-50/70 text-emerald-950 font-semibold';
+                            iconHtml = `<span class="w-6 h-6 rounded-md bg-emerald-600 text-white flex items-center justify-center font-bold text-xs mr-3"><i class="fa-solid fa-check"></i></span>`;
+                        } else if (idx === selectedOpt) {
+                            stateClasses = 'border-rose-300 bg-rose-50/70 text-rose-950 font-semibold';
+                            iconHtml = `<span class="w-6 h-6 rounded-md bg-rose-600 text-white flex items-center justify-center font-bold text-xs mr-3"><i class="fa-solid fa-xmark"></i></span>`;
+                        }
+                    }
+
+                    return `
+                        <button onclick="selectStudyOption('${q.id}', ${idx})" class="w-full text-left p-3 rounded-xl border transition flex items-center ${stateClasses}">
+                            ${iconHtml}
+                            <span class="text-xs sm:text-sm flex-1">${escapeHtml(opt)}</span>
+                        </button>
+                    `;
+                }).join('');
+            }
+
+            let explanationHtml = '';
+            if (selectedOpt !== undefined && q.explanation) {
+                explanationHtml = `
+                    <div class="mt-3 p-3.5 bg-blue-50/80 border border-blue-200/80 rounded-xl text-xs text-blue-900 space-y-1">
+                        <div class="font-bold flex items-center space-x-1 text-blue-700">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <span>Explanation</span>
+                        </div>
+                        <p class="leading-relaxed whitespace-pre-line">${escapeHtml(q.explanation)}</p>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="space-y-2 pt-1">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        ${optionsHtml}
+                    </div>
+                    ${explanationHtml}
+                </div>
+            `;
+        }
+
+        // Render Subjective Model Answer Toggle for Study Mode
+        function renderSubjectiveStudyContent(q) {
+            const isRevealed = practiceState[`subj_${q.id}`];
+
+            return `
+                <div class="pt-1 space-y-3">
+                    <button onclick="toggleSubjectiveReveal('${q.id}')" class="inline-flex items-center space-x-2 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
+                        <i class="fa-solid ${isRevealed ? 'fa-eye-slash text-slate-500' : 'fa-eye text-brand-600'}"></i>
+                        <span>${isRevealed ? 'Hide Model Answer' : 'Reveal Model Answer & Key Concepts'}</span>
+                    </button>
+
+                    ${isRevealed ? `
+                        <div class="p-4 bg-emerald-50/80 border border-emerald-200/80 rounded-xl space-y-3">
+                            <div>
+                                <span class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block mb-1">
+                                    <i class="fa-solid fa-square-check mr-1 text-emerald-600"></i>Model Answer / Key Concepts
+                                </span>
+                                <p class="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line font-medium">${escapeHtml(q.modelAnswer || 'No model answer provided.')}</p>
+                            </div>
+
+                            ${q.explanation ? `
+                                <div class="pt-2 border-t border-emerald-200/60 text-xs text-emerald-900">
+                                    <span class="font-bold text-emerald-800 block mb-0.5">Note / Rationale:</span>
+                                    <p class="whitespace-pre-line">${escapeHtml(q.explanation)}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function selectStudyOption(qId, optionIdx) {
+            practiceState[qId] = optionIdx;
+            renderStudyFeed();
+        }
+
+        function toggleSubjectiveReveal(qId) {
+            practiceState[`subj_${qId}`] = !practiceState[`subj_${qId}`];
+            renderStudyFeed();
+        }
+
+        function toggleMastered(qId) {
+            const q = questions.find(item => item.id === qId);
+            if (q) {
+                q.mastered = !q.mastered;
+                saveToStorage();
+                renderView();
+                updateMasteryStats();
+                showToast(q.mastered ? 'Marked as Mastered!' : 'Unmarked from Mastered', 'info');
+            }
+        }
+
+        function updateMasteryStats() {
+            const total = questions.length;
+            const masteredCount = questions.filter(q => q.mastered).length;
+            const percent = total > 0 ? Math.round((masteredCount / total) * 100) : 0;
+
+            document.getElementById('stat-mastery-percentage').textContent = `${percent}%`;
+            document.getElementById('stat-mastered-count').textContent = `${masteredCount} of ${total} mastered`;
+            document.getElementById('stat-mastery-bar').style.width = `${percent}%`;
+        }
+
+        // Manage Table Renderer
+        function renderManageTable() {
+            const tbody = document.getElementById('manage-table-body');
+            const filtered = getFilteredQuestions();
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-slate-400 font-medium">
+                            No matching questions in database
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(q => {
+                html += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-4 py-3 font-semibold text-slate-800">${escapeHtml(q.topic)}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-0.5 text-[10px] font-bold rounded ${q.type === 'objective' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-teal-50 text-teal-700 border border-teal-200'}">
+                                ${q.type === 'objective' ? 'Objective' : 'Subjective'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 max-w-xs font-medium text-slate-900 truncate" title="${escapeHtml(q.prompt)}">
+                            ${escapeHtml(q.prompt)}
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-0.5 text-[10px] font-bold rounded ${q.difficulty === 'Easy' ? 'bg-emerald-50 text-emerald-700' : q.difficulty === 'Hard' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'}">
+                                ${q.difficulty || 'Medium'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <button onclick="toggleMastered('${q.id}')" class="text-xs font-semibold ${q.mastered ? 'text-emerald-600 font-bold' : 'text-slate-400 hover:text-slate-600'}">
+                                <i class="fa-solid ${q.mastered ? 'fa-circle-check mr-1' : 'fa-circle mr-1'}"></i>
+                                ${q.mastered ? 'Mastered' : 'Unmastered'}
+                            </button>
+                        </td>
+                        <td class="px-4 py-3 text-right space-x-1">
+                            <button onclick="openEditQuestionModal('${q.id}')" class="px-2 py-1 text-slate-600 hover:text-brand-600 hover:bg-slate-100 rounded transition" title="Edit">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="confirmDeleteQuestion('${q.id}')" class="px-2 py-1 text-slate-600 hover:text-rose-600 hover:bg-slate-100 rounded transition" title="Delete">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // Quiz View Logic
+        function populateQuizTopicDropdown() {
+            const select = document.getElementById('quiz-topic-select');
+            let html = `<option value="all">All Available Topics (${questions.length} Questions)</option>`;
+            customTopics.forEach(t => {
+                const count = questions.filter(q => q.topic === t).length;
+                html += `<option value="${t}">${t} (${count} Questions)</option>`;
+            });
+            select.innerHTML = html;
+        }
+
+        function startQuiz() {
+            const topic = document.getElementById('quiz-topic-select').value;
+            const typeFocus = document.querySelector('input[name="quiz-type"]:checked').value;
+            const limit = parseInt(document.getElementById('quiz-limit-select').value, 10);
+
+            let available = questions.filter(q => {
+                if (topic !== 'all' && q.topic !== topic) return false;
+                if (typeFocus !== 'all' && q.type !== typeFocus) return false;
+                return true;
+            });
+
+            if (available.length === 0) {
+                showToast('No questions match your selected quiz filters.', 'error');
+                return;
+            }
+
+            // Shuffle pool
+            const shuffled = [...available].sort(() => 0.5 - Math.random()).slice(0, limit);
+
+            quizState = {
+                questions: shuffled,
+                currentIndex: 0,
+                answers: {},
+                score: 0,
+                active: true
+            };
+
+            document.getElementById('quiz-setup-card').classList.add('hidden');
+            document.getElementById('quiz-summary-card').classList.add('hidden');
+            document.getElementById('quiz-active-card').classList.remove('hidden');
+
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const container = document.getElementById('quiz-question-container');
+            const q = quizState.questions[quizState.currentIndex];
+            const total = quizState.questions.length;
+            const currNum = quizState.currentIndex + 1;
+
+            document.getElementById('quiz-progress-text').textContent = `${currNum} of ${total}`;
+            document.getElementById('quiz-progress-bar').style.width = `${(currNum / total) * 100}%`;
+
+            const currentAns = quizState.answers[q.id];
+
+            let html = `
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                            ${q.topic}
+                        </span>
+                        <span class="px-2.5 py-1 rounded-md text-[11px] font-bold border ${q.type === 'objective' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-teal-50 text-teal-700 border-teal-200'}">
+                            ${q.type === 'objective' ? 'Objective' : 'Subjective'}
+                        </span>
+                    </div>
+
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900 leading-relaxed whitespace-pre-line">${escapeHtml(q.prompt)}</h3>
+            `;
+
+            if (q.type === 'objective') {
+                html += `<div class="space-y-2 pt-2">`;
+                q.options.forEach((opt, idx) => {
+                    const letter = String.fromCharCode(65 + idx);
+                    const isSelected = currentAns === idx;
+                    
+                    html += `
+                        <button onclick="handleQuizOptionSelect(${idx})" class="w-full text-left p-3.5 rounded-xl border font-medium text-xs sm:text-sm flex items-center transition ${isSelected ? 'border-brand-500 bg-brand-50 text-brand-900 font-bold shadow-sm' : 'border-slate-200 hover:bg-slate-50 text-slate-700'}">
+                            <span class="w-6 h-6 rounded-md ${isSelected ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-500'} flex items-center justify-center font-bold text-xs mr-3">${letter}</span>
+                            <span class="flex-1">${escapeHtml(opt)}</span>
+                        </button>
+                    `;
+                });
+                html += `</div>`;
+            } else {
+                // Subjective quiz view
+                const revealed = quizState.answers[`subj_rev_${q.id}`];
+                const selfGraded = quizState.answers[q.id]; // true or false
+
+                html += `
+                    <div class="space-y-3 pt-2">
+                        <button onclick="toggleQuizSubjectiveReveal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition">
+                            <i class="fa-solid ${revealed ? 'fa-eye-slash mr-1.5' : 'fa-eye mr-1.5 text-brand-600'}"></i>
+                            ${revealed ? 'Hide Model Answer' : 'Reveal Model Answer'}
+                        </button>
+
+                        ${revealed ? `
+                            <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2 text-xs">
+                                <span class="font-bold text-emerald-800 uppercase tracking-wider block">Model Answer:</span>
+                                <p class="text-slate-800 leading-relaxed whitespace-pre-line font-medium">${escapeHtml(q.modelAnswer)}</p>
+                            </div>
+
+                            <div class="pt-2">
+                                <span class="block text-xs font-bold text-slate-600 mb-2">Self Assessment: How did you do?</span>
+                                <div class="flex items-center space-x-3">
+                                    <button onclick="handleQuizSubjectiveGrade(true)" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 ${selfGraded === true ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700'}">
+                                        <i class="fa-solid fa-check"></i>
+                                        <span>I got it right</span>
+                                    </button>
+                                    <button onclick="handleQuizSubjectiveGrade(false)" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 ${selfGraded === false ? 'bg-rose-600 text-white shadow-sm' : 'bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700'}">
+                                        <i class="fa-solid fa-xmark"></i>
+                                        <span>Needs review</span>
+                                    </button>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            // Action Buttons Footer
+            html += `
+                <div class="pt-4 flex items-center justify-between border-t border-slate-100">
+                    <button onclick="prevQuizQuestion()" ${quizState.currentIndex === 0 ? 'disabled class="opacity-40 cursor-not-allowed text-xs font-bold text-slate-400 px-3 py-2"' : 'class="text-xs font-bold text-slate-600 hover:text-slate-900 px-3 py-2 bg-slate-100 rounded-lg"'}>
+                        <i class="fa-solid fa-arrow-left mr-1"></i> Previous
+                    </button>
+
+                    <button onclick="nextQuizQuestion()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center space-x-1.5">
+                        <span>${currNum === total ? 'Finish Quiz' : 'Next Question'}</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function handleQuizOptionSelect(optIdx) {
+            const q = quizState.questions[quizState.currentIndex];
+            quizState.answers[q.id] = optIdx;
+            renderQuizQuestion();
+        }
+
+        function toggleQuizSubjectiveReveal() {
+            const q = quizState.questions[quizState.currentIndex];
+            quizState.answers[`subj_rev_${q.id}`] = !quizState.answers[`subj_rev_${q.id}`];
+            renderQuizQuestion();
+        }
+
+        function handleQuizSubjectiveGrade(isCorrect) {
+            const q = quizState.questions[quizState.currentIndex];
+            quizState.answers[q.id] = isCorrect;
+            renderQuizQuestion();
+        }
+
+        function prevQuizQuestion() {
+            if (quizState.currentIndex > 0) {
+                quizState.currentIndex--;
+                renderQuizQuestion();
+            }
+        }
+
+        function nextQuizQuestion() {
+            if (quizState.currentIndex < quizState.questions.length - 1) {
+                quizState.currentIndex++;
+                renderQuizQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            let correctCount = 0;
+            let newlyMastered = 0;
+
+            quizState.questions.forEach(q => {
+                const userAns = quizState.answers[q.id];
+                let isCorrect = false;
+
+                if (q.type === 'objective') {
+                    if (userAns === q.correctIndex) isCorrect = true;
+                } else {
+                    if (userAns === true) isCorrect = true;
+                }
+
+                if (isCorrect) {
+                    correctCount++;
+                    if (!q.mastered) {
+                        q.mastered = true;
+                        newlyMastered++;
+                    }
+                }
+            });
+
+            saveToStorage();
+            updateMasteryStats();
+
+            const total = quizState.questions.length;
+            const accuracy = Math.round((correctCount / total) * 100);
+
+            document.getElementById('quiz-score-num').textContent = `${correctCount}/${total}`;
+            document.getElementById('quiz-score-percent').textContent = `${accuracy}%`;
+            document.getElementById('quiz-score-mastered').textContent = `+${newlyMastered}`;
+
+            document.getElementById('quiz-active-card').classList.add('hidden');
+            document.getElementById('quiz-summary-card').classList.remove('hidden');
+        }
+
+        function resetQuizSetup() {
+            document.getElementById('quiz-summary-card').classList.add('hidden');
+            document.getElementById('quiz-active-card').classList.add('hidden');
+            document.getElementById('quiz-setup-card').classList.remove('hidden');
+        }
+
+        function quitQuiz() {
+            if (confirm("Are you sure you want to quit this quiz session? Progress will be lost.")) {
+                resetQuizSetup();
+            }
+        }
+
+        // Modal & Question Management Form Logic
+        function openModal(modalId) {
+            if (modalId === 'modal-add-question') {
+                populateFormTopicSelect();
+            }
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function populateFormTopicSelect() {
+            const select = document.getElementById('form-topic');
+            select.innerHTML = customTopics.map(t => `<option value="${t}">${t}</option>`).join('');
+        }
+
+        function toggleFormTypeFields() {
+            const type = document.getElementById('form-type').value;
+            const objFields = document.getElementById('fields-objective');
+            const subjFields = document.getElementById('fields-subjective');
+
+            if (type === 'objective') {
+                objFields.classList.remove('hidden');
+                subjFields.classList.add('hidden');
+            } else {
+                objFields.classList.add('hidden');
+                subjFields.classList.remove('hidden');
+            }
+        }
+
+        function openAddTopicModal() {
+            document.getElementById('new-topic-name').value = '';
+            openModal('modal-add-topic');
+        }
+
+        function handleCreateTopic(e) {
+            e.preventDefault();
+            const topicName = document.getElementById('new-topic-name').value.trim();
+            if (topicName && !customTopics.includes(topicName)) {
+                customTopics.push(topicName);
+                saveToStorage();
+                renderTopicsList();
+                showToast(`Topic "${topicName}" added!`, 'success');
+                closeModal('modal-add-topic');
+            }
+        }
+
+        function saveQuestion(e) {
+            e.preventDefault();
+
+            const editId = document.getElementById('edit-question-id').value;
+            const topic = document.getElementById('form-topic').value;
+            const type = document.getElementById('form-type').value;
+            const difficulty = document.getElementById('form-difficulty').value;
+            const prompt = document.getElementById('form-prompt').value.trim();
+            const tagsInput = document.getElementById('form-tags').value.trim();
+            const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(Boolean) : [];
+            const explanation = document.getElementById('form-explanation').value.trim();
+
+            let newOrUpdatedQuestion = {
+                id: editId || 'q-' + Date.now(),
+                topic,
+                type,
+                difficulty,
+                prompt,
+                tags,
+                explanation,
+                mastered: false,
+                createdAt: Date.now()
+            };
+
+            if (type === 'objective') {
+                const opt0 = document.getElementById('option-0').value.trim();
+                const opt1 = document.getElementById('option-1').value.trim();
+                const opt2 = document.getElementById('option-2').value.trim();
+                const opt3 = document.getElementById('option-3').value.trim();
+
+                const options = [opt0, opt1, opt2, opt3].filter(Boolean);
+                if (options.length < 2) {
+                    showToast('Objective questions require at least 2 options.', 'error');
+                    return;
+                }
+
+                const correctIndex = parseInt(document.querySelector('input[name="correct-option"]:checked').value, 10);
+
+                newOrUpdatedQuestion.options = options;
+                newOrUpdatedQuestion.correctIndex = correctIndex < options.length ? correctIndex : 0;
+            } else {
+                const modelAnswer = document.getElementById('form-model-answer').value.trim();
+                if (!modelAnswer) {
+                    showToast('Please provide a model answer.', 'error');
+                    return;
+                }
+                newOrUpdatedQuestion.modelAnswer = modelAnswer;
+            }
+
+            if (editId) {
+                const index = questions.findIndex(q => q.id === editId);
+                if (index !== -1) {
+                    newOrUpdatedQuestion.mastered = questions[index].mastered;
+                    questions[index] = newOrUpdatedQuestion;
+                    showToast('Question updated successfully!', 'success');
+                }
+            } else {
+                questions.unshift(newOrUpdatedQuestion);
+                showToast('New question created!', 'success');
+            }
+
+            saveToStorage();
+            closeModal('modal-add-question');
+            resetQuestionForm();
+            renderTopicsList();
+            renderView();
+            updateMasteryStats();
+        }
+
+        function resetQuestionForm() {
+            document.getElementById('edit-question-id').value = '';
+            document.getElementById('form-prompt').value = '';
+            document.getElementById('form-tags').value = '';
+            document.getElementById('form-explanation').value = '';
+            document.getElementById('form-model-answer').value = '';
+            document.getElementById('option-0').value = '';
+            document.getElementById('option-1').value = '';
+            document.getElementById('option-2').value = '';
+            document.getElementById('option-3').value = '';
+            document.getElementById('modal-question-title').textContent = 'Create New Question';
+            toggleFormTypeFields();
+        }
+
+        function openEditQuestionModal(qId) {
+            const q = questions.find(item => item.id === qId);
+            if (!q) return;
+
+            populateFormTopicSelect();
+            document.getElementById('modal-question-title').textContent = 'Edit Question';
+            document.getElementById('edit-question-id').value = q.id;
+            document.getElementById('form-topic').value = q.topic;
+            document.getElementById('form-type').value = q.type;
+            document.getElementById('form-difficulty').value = q.difficulty || 'Medium';
+            document.getElementById('form-prompt').value = q.prompt;
+            document.getElementById('form-tags').value = q.tags ? q.tags.join(', ') : '';
+            document.getElementById('form-explanation').value = q.explanation || '';
+
+            toggleFormTypeFields();
+
+            if (q.type === 'objective') {
+                if (q.options) {
+                    document.getElementById('option-0').value = q.options[0] || '';
+                    document.getElementById('option-1').value = q.options[1] || '';
+                    document.getElementById('option-2').value = q.options[2] || '';
+                    document.getElementById('option-3').value = q.options[3] || '';
+                }
+                const radio = document.querySelector(`input[name="correct-option"][value="${q.correctIndex || 0}"]`);
+                if (radio) radio.checked = true;
+            } else {
+                document.getElementById('form-model-answer').value = q.modelAnswer || '';
+            }
+
+            openModal('modal-add-question');
+        }
+
+        function confirmDeleteQuestion(qId) {
+            const modal = document.getElementById('modal-confirm');
+            const confirmBtn = document.getElementById('confirm-action-btn');
+            const cancelBtn = document.getElementById('confirm-cancel-btn');
+
+            document.getElementById('confirm-title').textContent = 'Delete Question?';
+            document.getElementById('confirm-message').textContent = 'This question will be permanently removed from your bank.';
+
+            confirmBtn.onclick = () => {
+                deleteQuestion(qId);
+                closeModal('modal-confirm');
+            };
+
+            cancelBtn.onclick = () => closeModal('modal-confirm');
+            openModal('modal-confirm');
+        }
+
+        function deleteQuestion(qId) {
+            questions = questions.filter(q => q.id !== qId);
+            saveToStorage();
+            renderTopicsList();
+            renderView();
+            updateMasteryStats();
+            showToast('Question deleted.', 'info');
+        }
+
+        // Export & Import Tools
+        function exportJson() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(questions, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `topic_qa_questions_backup_${Date.now()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('Question bank exported as JSON!', 'success');
+        }
+
+        function triggerImportJson() {
+            document.getElementById('input-json-file').click();
+        }
+
+        function importJson(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        questions = imported;
+                        saveToStorage();
+                        renderTopicsList();
+                        renderView();
+                        updateMasteryStats();
+                        showToast(`Successfully imported ${imported.length} questions!`, 'success');
+                    } else {
+                        showToast('Invalid JSON file format.', 'error');
+                    }
+                } catch (err) {
+                    showToast('Failed to parse JSON file.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Download Self-Contained GitHub Pages HTML
+        function exportGitHubHtml() {
+            // Get full source code of current document
+            let fullHtml = document.documentElement.outerHTML;
+
+            // Embed current questions array directly into DEFAULT_QUESTIONS in exported file
+            const questionsSerialized = JSON.stringify(questions, null, 4);
+            const topicsSerialized = JSON.stringify(customTopics, null, 4);
+
+            // Replace DEFAULT_QUESTIONS and DEFAULT_TOPICS in source text
+            fullHtml = fullHtml.replace(/const DEFAULT_QUESTIONS = \[[\s\S]*?\];/, `const DEFAULT_QUESTIONS = ${questionsSerialized};`);
+            fullHtml = fullHtml.replace(/const DEFAULT_TOPICS = \[[\s\S]*?\];/, `const DEFAULT_TOPICS = ${topicsSerialized};`);
+
+            const blob = new Blob(["<!DOCTYPE html>\n" + fullHtml], { type: "text/html" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "index.html";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+
+            showToast('GitHub Pages ready index.html downloaded!', 'success');
+        }
+
+        // Toast Notifications
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgClass = type === 'success' ? 'bg-emerald-800 text-white' :
+                            type === 'error' ? 'bg-rose-800 text-white' :
+                            'bg-slate-900 text-white';
+
+            const iconClass = type === 'success' ? 'fa-circle-check text-emerald-400' :
+                             type === 'error' ? 'fa-circle-exclamation text-rose-400' :
+                             'fa-circle-info text-brand-400';
+
+            toast.className = `p-3.5 rounded-xl shadow-xl flex items-center space-x-2 text-xs font-semibold ${bgClass} transition-all duration-300 transform translate-y-2 pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid ${iconClass} text-sm"></i><span>${escapeHtml(message)}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Helper to prevent XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
